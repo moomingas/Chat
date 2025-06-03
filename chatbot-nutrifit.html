@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot NutriFit</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e6f2f1;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #28a745;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    .chat-container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 70vh;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+
+    .user {
+      background-color: #d1e7dd;
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .bot {
+      background-color: #f0f0f0;
+      align-self: flex-start;
+    }
+
+    .input-area {
+      display: flex;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<header>Chatbot IA - NutriFit</header>
+
+<div class="chat-container">
+  <div class="messages" id="chat"></div>
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Escribe tu pregunta...">
+    <button onclick="enviarMensaje()">Enviar</button>
+  </div>
+</div>
+
+<footer>© 2025 NutriFit - Asistente virtual saludable</footer>
+
+<script>
+  const chat = document.getElementById("chat");
+  const OPENAI_API_KEY ="sk-...ihAA"; // ⚠️ Reemplaza con tu clave de OpenAI
+
+  function agregarMensaje(texto, clase) {
+    const div = document.createElement("div");
+    div.className = `message ${clase}`;
+    div.textContent = texto;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function enviarMensaje() {
+    const input = document.getElementById("userInput");
+    const texto = input.value.trim();
+    if (texto === "") return;
+
+    agregarMensaje(texto, "user");
+    input.value = "";
+
+    obtenerRespuestaIA(texto);
+  }
+
+  async function obtenerRespuestaIA(pregunta) {
+    agregarMensaje("Escribiendo...", "bot");
+
+    try {
+      const respuesta = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: pregunta }],
+          temperature: 0.7
+        })
+      });
+
+      const data = await respuesta.json();
+      const textoRespuesta = data.choices?.[0]?.message?.content || "No se recibió respuesta.";
+
+      const mensajes = document.querySelectorAll(".message.bot");
+      mensajes[mensajes.length - 1].remove();
+
+      agregarMensaje(textoRespuesta, "bot");
+    } catch (error) {
+      const mensajes = document.querySelectorAll(".message.bot");
+      mensajes[mensajes.length - 1].remove();
+      agregarMensaje("⚠️ Error al conectar con la IA.", "bot");
+      console.error(error);
+    }
+  }
+</script>
+
+</body>
+</html>
